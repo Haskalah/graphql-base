@@ -1,0 +1,16 @@
+.phpcs-cache
+composer.lock
+composer.phar
+phpcs.xml
+phpstan.neon
+vendor/
+benchmarks/
+docs/
+examples/
+srcBACK/
+tests/
+tools/
+/.idea
+*.yml
+*.json
+*.dist
