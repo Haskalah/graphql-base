@@ -1,12 +1,10 @@
 <?php
 // Test this using following command
 // php -S localhost:8080 ./graphql.php
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '\vendor\autoload.php';
 
-use App\Models\Firebase_Model;
-use App\Models\User_Model;
-use App\Type\Types;
-use App\Context\AppContext;
+use \AppContext;
+use \Type\Types;
 use \GraphQL\Type\Schema;
 use \GraphQL\GraphQL;
 use \GraphQL\Error\FormattedError;
@@ -32,55 +30,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 header('Access-Control-Allow-Origin: *');
 
+
 try {
 
     // Prepare context that will be available in all field resolvers (as 3rd argument):
     $appContext = new AppContext();
+    $appContext->viewer = '1';
     $appContext->rootUrl = 'http://localhost:8080';
     $appContext->request = $_REQUEST;
 
+    /*foreach (getallheaders() as $name => $value) {
+        echo "$name: $value <br>";
+    }*/
+
     // Parse incoming query and variables
-    if (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/graphql') !== false) {
+    if (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) {
         $raw = file_get_contents('php://input') ?: '';
         $data = json_decode($raw, true) ?: [];
     } else {
         $data = $_REQUEST;
     }
-    $testData = [];
 
-    try {
-      $firebase = new Firebase_Model();
-      $userToken = $firebase->authenticate();
-      $appContext->user = (new User_Model())->loadByFirebaseToken($userToken);
-      $testData['auth'] = $userToken;
-    } catch (Exception $e) {
-      $testData['authError'] = $e->getMessage();
+    $data += ['query' => null, 'variables' => null];
+
+    if (null === $data['query']) {
+        $data['query'] = '{hello}';
     }
 
-    if (!isset($data['query'])) {
-      $output = null;
-      $httpStatus = 200;
-    } else {
-      if (null === $data['query']) {
-        $testData['foundNull'] = true;
-        //throw new Exception("Query cannot be null!");
-      }
+    // GraphQL schema to be passed to query executor:
+    $schema = new Schema([
+        'query' => Types::query()
+    ]);
 
-      // GraphQL schema to be passed to query executor:
-      $schema = new Schema(['query' => Types::query()]);
-
-      $result = GraphQL::executeQuery(
-          $schema,
-          $data['query'],
-          null,
-          $appContext,
-          (array) $data['variables']
-      );
-      $output = $result->toArray($debug);
-      $output['test'] = $testData;
-      $httpStatus = 200;
-    }
-
+    $result = GraphQL::executeQuery(
+        $schema,
+        $data['query'],
+        null,
+        $appContext,
+        (array) $data['variables']
+    );
+    $output = $result->toArray($debug);
+    $httpStatus = 200;
 } catch (\Exception $error) {
     $httpStatus = 500;
     $output['errors'] = [
@@ -89,6 +79,4 @@ try {
 }
 
 header('Content-Type: application/json', true, $httpStatus);
-if ($output !== null) {
-  echo json_encode($output);
-}
+echo json_encode($output);

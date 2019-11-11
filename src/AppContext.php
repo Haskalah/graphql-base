@@ -1,5 +1,4 @@
 <?php
-namespace App\Context;
 
 /**
  * Class AppContext
@@ -7,8 +6,7 @@ namespace App\Context;
  *
  * @package GraphQL\Examples\Blog
  */
-class AppContext
-{
+class AppContext {
     /**
      * @var string
      */
@@ -17,7 +15,7 @@ class AppContext
     /**
      * @var mixed
      */
-    public $user;
+    public $viewer;
 
     /**
      * @var mixed

@@ -33,12 +33,14 @@
   },
   "autoload": {
     "psr-4": {
-      "App\\": "src/App/"
+      "": "src/",
+      "GraphQL\\App\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "App\\": "src/App/"
+      "": "src/",
+      "GraphQL\\App\\": "sr/"
     }
   },
   "suggest": {
